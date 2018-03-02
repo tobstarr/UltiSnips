@@ -1,3 +1,57 @@
+snippet lambda "lambda" do
+package main
+
+import (
+	"encoding/json"
+	"log"
+	"os"
+
+	"github.com/aws/aws-lambda-go/lambda"
+)
+
+func main() {
+	lambda.Start(Handler)
+}
+
+func Handler(v json.RawMessage) (interface{}, error) {
+	l := log.New(os.Stderr, "", 0)
+	l.Printf("called with %#v", v)
+	return "${1:Hello World}", nil${0}
+}
+endsnippet
+
+
+snippet date "date" do
+time.Date(${1:2018}, ${2:1}, ${3:1}, 0, 0, 0, 0, time.UTC)
+${0}
+endsnippet
+
+snippet apex "apex go function" do
+package main
+
+import (
+	"encoding/json"
+
+	"github.com/apex/go-apex"
+)
+
+type message struct {
+	Value string `json:"value"`
+}
+
+func main() {
+	apex.HandleFunc(func(event json.RawMessage, ctx *apex.Context) (interface{}, error) {
+        ${1:return "OK", nil}
+	})
+}
+endsnippet
+
+snippet signal "signal" do
+sc := make(chan os.Signal, 3)
+signal.Notify(sc, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGINT)
+${0}
+endsnippet
+
 snippet gh "github client snippets" do
 func githubClient() (*github.Client, error) {
 	token, err := githubToken()
@@ -113,7 +167,7 @@ ${0}
 endsnippet
 
 snippet has "Description" b
-  tests := []struct{ Want, Has interface{} }{
+  tests := []struct{ Has, Want interface{} }{
     {${1}, ${2}},
         ${0}
   }
