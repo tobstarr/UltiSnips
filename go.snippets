@@ -1,3 +1,17 @@
+snippet st "subtest" do
+t.Run("${1}", func(t *testing.T) {
+  ${0}
+})
+endsnippet
+
+
+
+snippet cmd "cli cmd" do
+func ${1}Cmd(ctx *cli.Context) error {
+    return nil
+}
+endsnippet
+
 snippet lambda "lambda" do
 package main
 
@@ -166,16 +180,20 @@ defer pr.Close()
 ${0}
 endsnippet
 
+snippet ws "Description"
+errors.WithStack(${1:err})
+endsnippet
+
 snippet has "Description" b
-  tests := []struct{ Has, Want interface{} }{
-    {${1}, ${2}},
-        ${0}
-  }
-  for i, tc := range tests {
-    if tc.Want != tc.Has {
-      t.Errorf("%d: want %#v (%T), was %#v (%T)", i + 1, tc.Want, tc.Want, tc.Has, tc.Has)
-    }
-  }
+tests := []struct{ Has, Want interface{} }{
+	{${1}, ${2}},
+			${0}
+}
+for i, tc := range tests {
+	if tc.Want != tc.Has {
+		t.Errorf("%d: want %#v, was %#v", i + 1, tc.Want, tc.Has)
+	}
+}
 endsnippet
 
 snippet hasf "Description" b
@@ -204,31 +222,6 @@ func s(in interface{}) string {
 	default:
 		return fmt.Sprint(c)
 }
-}
-endsnippet
-
-snippet ewrap "Description" b
-func e(i interface{}, args ...interface{}) error {
-	if c, ok := i.(string); ok {
-		return errors.Wrap(fmt.Errorf(c, args...), 1)
-	} else if i == nil {
-		return nil
-	}
-	return errors.Wrap(i, 1)
-}
-
-func handle(err error) {
-	if err == nil {
-		return
-	}
-	if c, ok := err.(interface {
-		ErrorStack() string
-	}); ok {
-		fmt.Println(c.ErrorStack())
-	} else {
-		fmt.Println(err.Error())
-	}
-	os.Exit(1)
 }
 endsnippet
 
@@ -362,11 +355,11 @@ func (${1:self}) ${2:Method}(${3}) ${4:error} {
 endsnippet
 
 snippet ref "Return fmt.Errorf" b
-return fmt.Errorf("${1:error}", ${2:args})
+return errors.Errorf("${1:error}", ${2:args})
 endsnippet
 
 snippet ef "Return errorf"
-fmt.Errorf("${1}"${2})${0}
+errors.Errorf("${1}"${2})${0}
 endsnippet
 
 snippet test "Test Function" b
@@ -397,7 +390,7 @@ endsnippet
 
 snippet ifer "if error" b
 if err != nil {
-	return fmt.Errorf("${1}: %s", err)
+	return errors.Errorf("${1}: %s", err)
 }
 ${0}
 endsnippet
@@ -442,11 +435,11 @@ func ${1}(w http.ResponseWriter, r *http.Request) {
 endsnippet
 
 snippet logger "Description" b
-l := log.New(os.${1:Stderr}, "${2}", ${3:0})
+l := logrus.New()
 endsnippet
 
 snippet ef "errorf" b
-fmt.Errorf("${1:error}")
+errors.Errorf("${1:error}")
 endsnippet
 
 snippet runner "Runner base setup" b
@@ -662,7 +655,7 @@ if err != nil {
 	return err
 }
 if rsp.Status[0] != '2' {
-	return fmt.Errorf("expected status 2xx, got %s: %s", rsp.Status, string(b))
+	return errors.Errorf("expected status 2xx, got %s: %s", rsp.Status, string(b))
 }
 ${0}
 endsnippet
@@ -674,7 +667,7 @@ if err != nil {
 defer rsp.Body.Close()
 if rsp.Status[0] != '2' {
 	b, _ := ioutil.ReadAll(rsp.Body)
-	return fmt.Errorf("got status %s but expected 2x. body=%s", rsp.Status, string(b))
+	return errors.Errorf("got status %s but expected 2x. body=%s", rsp.Status, string(b))
 }
 ${0}
 endsnippet
@@ -763,13 +756,13 @@ if v, x := ${1}, ${2:"-1"}; x != v {
 endsnippet
 
 snippet e "fmt.Errorf"
-errors.New(${1})${0}
+errors.Errorf(${1})${0}
 endsnippet
 
 snippet err "Error"
 ${1}err := ${2}
 if err != nil {
-	return err
+	return errors.WithStack(err)
 }
 endsnippet
 
