@@ -129,12 +129,12 @@ type beginner interface {
 func withTx(con beginner, f func(tx *sql.Tx) error) error {
 	tx, err := con.Begin()
 	if err != nil {
-		return err
+		return errors.WithStack(err)
 	}
 	err = f(tx)
 	if err != nil {
 		_ = tx.Rollback()
-		return err
+		return errors.WithStack(err)
 	}
 	return tx.Commit()
 }
@@ -281,12 +281,12 @@ endsnippet
 snippet gzr "Gzip Reader"
 f, err := os.Open(p)
 if err != nil {
-	return err
+	return errors.WithStack(err)
 }
 defer f.Close()
 gz, err := gzip.NewReader(f)
 if err != nil {
-	return err
+	return errors.WithStack(err)
 }
 defer gz.Close()
 r := bufio.NewReader(gz)
@@ -445,15 +445,20 @@ endsnippet
 snippet runner "Runner base setup" b
 package main
 
+import (
+	"github.com/sirupsen/logrus"
+	"github.com/urfave/cli"
+)
+
 func main() {
-	l := log.New(os.Stderr, "", 0)
-	if err := run(l); err != nil {
-		log.Fatal(err)
-	}
+	app := &cli.App{}
+	app.Action = run
+	app.RunAndExitOnError()
 }
 
-func run(l *log.Logger) error {
-	${1}
+func run(ctx *cli.Context) error {
+	l := logrus.New()
+	l.Printf("running")${0}
 	return nil
 }
 endsnippet
@@ -647,12 +652,12 @@ endsnippet
 
 snippet rspb "Handle http response with reading body" b
 if err != nil {
-	return err
+	return errors.WithStack(err)
 }
 defer rsp.Body.Close()
 b, err := ioutil.ReadAll(rsp.Body)
 if err != nil {
-	return err
+	return errors.WithStack(err)
 }
 if rsp.Status[0] != '2' {
 	return errors.Errorf("expected status 2xx, got %s: %s", rsp.Status, string(b))
@@ -715,17 +720,17 @@ endsnippet
 snippet rows "Sql Query" b
 rows, err := con.Query(${1})
 if err != nil {
-	return err
+	return errors.WithStack(err)
 }
 defer rows.Close()
 for rows.Next() {
 	${2}
 	if err := rows.Scan(${3}); err != nil {
-		return err
+		return errors.WithStack(err)
 	}
 }
 if err := rows.Err(); err != nil {
-	return err
+	return errors.WithStack(err)
 }
 endsnippet
 
