@@ -4,7 +4,9 @@ t.Run("${1}", func(t *testing.T) {
 })
 endsnippet
 
-
+snippet bench "description"
+l.Printf("${1} in %.6f", time.Since(start).Seconds())${0}
+endsnippet
 
 snippet cmd "cli cmd" do
 func ${1}Cmd(ctx *cli.Context) error {
@@ -305,11 +307,15 @@ return nil
 endsnippet
 
 snippet bm "Description" b
-func benchmark(message string) func() {
-	started := time.Now()
-	l.Printf("started  %s", message)
-	return func() {
-		l.Printf("finished %s in %.06f", message, time.Since(started).Seconds())
+func benchmark(l logrus.FieldLogger) func(string, ...interface{}) {
+	start, last := time.Now(), time.Now()
+	return func(msg string, args ...interface{}) {
+		if len(args) > 0 {
+			msg = fmt.Sprintf(msg, args...)
+		}
+		msg += fmt.Sprintf(" in part=%.06f total=%.06f", time.Since(last).Seconds(), time.Since(start).Seconds())
+		l.Print(msg)
+		last = time.Now()
 	}
 }
 ${0}
@@ -336,6 +342,13 @@ snippet ife "if error" b
 if err != nil {
 	${1}
 }
+endsnippet
+
+
+snippet ifes "if error with stack" b
+if err != nil {
+	return errors.WithStack(err)
+}${0}
 endsnippet
 
 snippet init "init" b
